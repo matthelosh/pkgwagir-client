@@ -20,10 +20,10 @@
                 {{ i + 1 }}
               </td>
               <td class="border-r text-slate-700 py-1 px-2">
-                {{ data.kebiasaan }}
+                {{ data?.kebiasaan ?? '-' }}
               </td>
               <td class="text-slate-700 py-1 px-2">
-                {{ dayjs(data.waktu).locale('id_ID').format('DD MMM YYYY HH:mm') }}
+                {{ dayjs(data?.waktu).locale('id_ID').format('DD MMM YYYY HH:mm') }}
               </td>
             </tr>
           </template>
@@ -32,6 +32,10 @@
       <div v-else class="alert flex flex-col gap-3 rounded my-4 bg-orange-100 shadow px-2 py-4">
         <h3 class="text-lg font-bold">Peringatan:</h3>
         <p>Data hanya tampil bagi siswa. Guru dapat melihat di dashboard khusus guru.</p>
+      </div>
+      <div v-if="datas.length > 0">
+<!--        {{dayjs(datas[0].waktu).format("YYYY-MM-DD")}} | {{dayjs(new
+  Date()).format("YYYY-MM-DD")}} -->
       </div>
     </div>
     <button
@@ -116,6 +120,14 @@ import siswaImg from '@/assets/siswa.png'
 import siswiImg from '@/assets/siswi.png'
 import siswiIs from '@/assets/siswi_is.png'
 
+interface ItemKebiasaan {
+  kebiasaan: string;
+  waktu: string;
+  siswaId: string;
+  rombelId: string;
+  keterangan: string;
+}
+
 const userStore = useUserStore()
 // const { success, error } = useNotification()
 const user = userStore
@@ -151,10 +163,32 @@ const item = ref({
   rombelId: '',
   keterangan: '',
 })
-const datas = ref([])
+const datas = ref<ItemKebiasaan[]>([])
+const todayActivities = computed(() => {
+  const acts = datas.value.filter((data) => {
+    return dayjs(data?.waktu).format('YYYY-MM-DD') == dayjs(new Date()).format("YYYY-MM-DD")
+  })
+  return acts
+})
+
+const lanjut = () => {
+  const sekali = ['Bangun Pagi', 'Tidur Cepat']
+  if (sekali.includes(item.value.kebiasaan)) {
+    if (todayActivities.value.map(act => act?.kebiasaan).includes(item.value.kebiasaan)) {
+            return false
+    }
+  } else {
+  return true;
+  }
+}
 
 const simpan = async () => {
   // alert('tes')
+  if (!lanjut()) {
+    notify.error(item.value.kebiasaan + " hanya sekali sehari.")
+    return false
+  }
+
   try {
     const response = await api.post('/kaih/store', item.value, {
       params: {
