@@ -3,19 +3,22 @@ export interface UserBasic {
   email: string
 }
 export interface UserDetail {
+  id: String
   nama: string
   nisn: string
   token: string
   role: string
   foto: string
   agama: string
-  jk: string
-  rombel: {
-    id: number
-    kode: string
-    label: string
-    tapel: string
-  }
+  jenis_kelamin: string
+  rombel: [
+    {
+      id: number
+      kode: string
+      label: string
+      tapel: string
+    },
+  ]
 }
 
 export interface UserState {

@@ -1,40 +1,44 @@
 <template>
   <div class="w-screen h-screen relative">
-    <ToolBar />
-    <div class="wrapper p-4 w-full">
-      <h1 class="text-center font-bold text-3xl text-slate-700">Data Pelaskanaan</h1>
-      <h3 class="text-center text-lg text-gray-600">Tujuh Kebiasaan Anak Indonesia Hebat</h3>
+    <div class="wrapper p-4 w-full relative">
+      <router-link to="/dashboard">
+        <Icon icon="lucide:arrow-left" />
+      </router-link>
+      <h1 class="text-center font-bold text-xl text-slate-700">Data Pelaskanaan</h1>
+      <h3 class="text-center text-gray-600 text-sm">Tujuh Kebiasaan Anak Indonesia Hebat</h3>
+      <h3 class="text-center text-gray-600 font-semibold text-xs">{{ detail?.nama }}</h3>
 
-      <table class="w-full my-4" v-if="user.role == 'siswa'">
+      <table class="table table-zebra table-sm w-full my-4">
         <thead>
-          <tr class="bg-sky-200">
-            <th class="border-r text-slate-700 px-1 py-2">No</th>
-            <th class="border-r text-slate-700 px-1 py-2">Kebiasaan</th>
-            <th class="text-slate-700 px-1 py-2">Waktu, tanggal</th>
+          <tr class="bg-slate-200">
+            <th class="px-2 border border-slate-400 text-slate-700">No</th>
+            <th class="px-2 border border-slate-400 text-slate-700">Kebiasaan</th>
+            <th class="px-2 border border-slate-400 text-slate-700">Waktu, tanggal</th>
           </tr>
         </thead>
         <tbody>
-          <template v-for="(data, i) in datas" :key="i">
-            <tr class="even:bg-sky-50">
-              <td class="border-r text-slate-700 px-1 text-center">
+          <template v-for="(data, i) in datas" :key="i" v-if="datas.length > 0">
+            <tr>
+              <td class="border border-slate-400 text-slate-700 text-center">
                 {{ i + 1 }}
               </td>
-              <td class="border-r text-slate-700 py-1 px-2">
+              <td class="border border-slate-400 text-slate-700">
                 {{ data?.kebiasaan ?? '-' }}
               </td>
-              <td class="text-slate-700 py-1 px-2">
-                {{ dayjs(data?.waktu).locale('id_ID').format('DD MMM YYYY HH:mm') }}
+              <td class="border border-slate-400 text-slate-700">
+                {{ dayjs(data?.createdAt).locale('id_ID').format('DD MMM YYYY HH:mm') }}
               </td>
             </tr>
           </template>
+          <tr v-else>
+            <td colspan="3">
+              <div class="alert alert-warning">Belum ada data</div>
+            </td>
+          </tr>
         </tbody>
       </table>
-      <div v-else class="alert flex flex-col gap-3 rounded my-4 bg-orange-100 shadow px-2 py-4">
-        <h3 class="text-lg font-bold">Peringatan:</h3>
-        <p>Data hanya tampil bagi siswa. Guru dapat melihat di dashboard khusus guru.</p>
-      </div>
       <div v-if="datas.length > 0">
-<!--        {{dayjs(datas[0].waktu).format("YYYY-MM-DD")}} | {{dayjs(new
+        <!--        {{dayjs(datas[0].waktu).format("YYYY-MM-DD")}} | {{dayjs(new
   Date()).format("YYYY-MM-DD")}} -->
       </div>
     </div>
@@ -50,32 +54,29 @@
       @click.self="form_angket = !form_angket"
       v-if="form_angket"
     >
-      <button
+      <!-- <button
         class="absolute w-[40px] h-[40px] rounded-full text-xl font-bold text-white red shadow-lg right-4 top-6 bg-red-500 flex items-center justify-center cursor-pointer"
         @click="form_angket = !form_angket"
       >
         <Icon icon="mdi:close" class="text-2xl" />
-      </button>
-      <div class="box bg-white rounded-lg shadow p-4">
-        <h1 class="text-center font-bold text-slate-600 text-2xl">
-          Isi Kegiatan Kebiasaan Anak Indonesia Hebat
-        </h1>
+      </button> -->
+      <div class="card bg-white rounded-lg shadow">
+        <div class="card-body form flex flex-col gap-4">
+          <h1 class="text-center font-bold text-slate-600 text-2xl">
+            {{ detail?.nama }}
+          </h1>
 
-        <img :src="foto" alt="Foto Siswa" class="rounded-full w-[50%] mx-auto mt-8 shadow" />
-        <h3 class="text-center">{{ detail?.nama }}</h3>
-        <h3 class="text-center">{{ detail?.foto }}</h3>
-
-        <div class="form flex flex-col gap-4 my-4">
+          <img
+            :src="item.kebiasaan === 'pilih' ? foto : `/${item.kebiasaan}.png`"
+            alt="Foto Siswa"
+            class="w-[50%] mx-auto"
+          />
           <div class="flex items-center justify-center gap-2">
-            <Icon icon="mdi:calendar" class="text-2xl text-orange-400" />
-            <span class="text-sky-700">{{ item.waktu.toLocaleString() }}</span>
+            <input type="date" id="datetime" step="1" v-model="item.waktu" class="input" />
           </div>
-          <label for="Kebiasaan" class="flex flex-col">
+          <label for="Kebiasaan" class="flex flex-col w-full">
             <span>Kebiasaan:</span>
-            <select
-              v-model="item.kebiasaan"
-              class="border border-slate-600 outline-slate-600 rounded p-2"
-            >
+            <select v-model="item.kebiasaan" class="select w-full">
               <option value="pilih">Pilih Kebiasaan</option>
               <template v-for="(habit, k) in kebiasaans" :key="k">
                 <option :value="habit">{{ habit }}</option>
@@ -91,14 +92,10 @@
             >
             </textarea>
           </label>
-          <div class="flex justify-center">
-            <button
-              @click="simpan"
-              class="bg-sky-500 text-white px-3 py-2 rounded-lg active:bg-sky-300 uppercase tracking-wide hover:cursor-pointer"
-            >
-              Simpan
-            </button>
-          </div>
+        </div>
+        <div class="card-actions py-4 px-6 flex justify-between">
+          <button @click="form_angket = !form_angket" class="btn btn-error btn-ghost">Batal</button>
+          <button @click="simpan" class="btn btn-primary">Simpan</button>
         </div>
       </div>
     </div>
@@ -113,7 +110,7 @@ import { Icon } from '@iconify/vue'
 import { useUserStore } from '@/stores/user'
 import notify from '@/composables/useNotification'
 // import axios from 'axios'
-import api, { setAuthToken } from '@/services/api'
+import { api } from '@/services/api'
 
 import ToolBar from '@/components/ToolBar.vue'
 import siswaImg from '@/assets/siswa.png'
@@ -121,11 +118,12 @@ import siswiImg from '@/assets/siswi.png'
 import siswiIs from '@/assets/siswi_is.png'
 
 interface ItemKebiasaan {
-  kebiasaan: string;
-  waktu: string;
-  siswaId: string;
-  rombelId: string;
-  keterangan: string;
+  kebiasaan: string
+  waktu: string
+  siswaId: string
+  rombelId: string
+  keterangan: string
+  createdAt: string
 }
 
 const userStore = useUserStore()
@@ -134,8 +132,12 @@ const user = userStore
 const detail = user.detail
 const foto = computed(() => {
   return (
-    import.meta.env.VITE_API_BASE_URL.replace('/api', '') + detail?.foto ||
-    (detail?.jk == 'Laki-laki' ? siswaImg : detail?.agama == 'Islam' ? siswiIs : siswiImg)
+    detail?.foto ||
+    (detail?.jenis_kelamin == 'Laki-laki'
+      ? siswaImg
+      : detail?.agama == 'Islam'
+        ? siswiIs
+        : siswiImg)
   )
 })
 
@@ -156,9 +158,10 @@ const kebiasaans = ref([
   'Bermasyarakat',
   'Tidur Cepat',
 ])
+
 const item = ref({
   kebiasaan: 'pilih',
-  waktu: new Date(),
+  waktu: dayjs(new Date()).locale('id').format('YYYY-MM-DD'),
   siswaId: '',
   rombelId: '',
   keterangan: '',
@@ -166,7 +169,7 @@ const item = ref({
 const datas = ref<ItemKebiasaan[]>([])
 const todayActivities = computed(() => {
   const acts = datas.value.filter((data) => {
-    return dayjs(data?.waktu).format('YYYY-MM-DD') == dayjs(new Date()).format("YYYY-MM-DD")
+    return dayjs(data?.waktu).format('YYYY-MM-DD') == dayjs(new Date()).format('YYYY-MM-DD')
   })
   return acts
 })
@@ -174,29 +177,26 @@ const todayActivities = computed(() => {
 const lanjut = () => {
   const sekali = ['Bangun Pagi', 'Tidur Cepat']
   if (sekali.includes(item.value.kebiasaan)) {
-    if (todayActivities.value.map(act => act?.kebiasaan).includes(item.value.kebiasaan)) {
-            return false
+    if (todayActivities.value.map((act) => act?.kebiasaan).includes(item.value.kebiasaan)) {
+      return false
     }
   } else {
-  return true;
+    return true
   }
 }
 
 const simpan = async () => {
   // alert('tes')
   if (!lanjut()) {
-    notify.error(item.value.kebiasaan + " hanya sekali sehari.")
+    notify.error(item.value.kebiasaan + ' hanya sekali sehari.')
     return false
   }
 
   try {
-    const response = await api.post('/kaih/store', item.value, {
-      params: {
-        rombelId: detail?.rombel?.kode,
-        siswaId: detail?.nisn,
-        semester: '1',
-        is_done: '1',
-      },
+    console.log(detail)
+    const response = await api(`/kaih/store/${detail?.rombel[0]?.id}/${detail?.id}`, {
+      method: 'POST',
+      body: item.value,
     })
     if (response) {
       notify.success('Data Disimpan')
@@ -210,10 +210,12 @@ const simpan = async () => {
 
 const getRecords = async () => {
   try {
-    setAuthToken(user.token)
-    const response = await api.get('/kaih')
+    // setAuthToken(user.token)
+    const response = await api(`/kaih/${detail?.rombel[0]?.id}/${detail?.id}`, {
+      method: 'GET',
+    })
     // console.log(response.data.datas)
-    datas.value = response.data.datas
+    datas.value = response.kaihs
   } catch (error) {
     console.log(error)
   }

@@ -1,34 +1,80 @@
-import axios from 'axios'
-import type { AxiosInstance } from 'axios'
 import { useUserStore } from '@/stores/user'
 import router from '@/router'
 
-const baseURL = import.meta.env.VITE_API_BASE_URL
+const baseURL = import.meta.env.VITE_API_BASE_URL!
+interface RequestOptions extends RequestInit {
+  body?: any
+}
 
-const api: AxiosInstance = axios.create({
-  baseURL,
-})
+export class ApiError extends Error {
+  status?: number
+  constructor(message: string, status?: number) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+  }
+}
 
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    const userStore = useUserStore()
+export const api = async (endpoint: string, options: RequestOptions = {}) => {
+  try {
+    const auth = useUserStore()
 
-    if (
-      error.response &&
-      error.response.status === 401 &&
-      router.currentRoute.value.name !== 'login'
-    ) {
-      userStore.logout()
-      router.replace({ name: 'home' })
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+      ...(auth.token && { Authorization: `Bearer ${auth.token}` }),
+      ...options.headers,
     }
 
-    return Promise.reject(error)
-  },
-)
+    const response: any = await fetch(`${baseURL}${endpoint}`, {
+      ...options,
+      headers,
+      body: options.body ? JSON.stringify(options.body) : undefined,
+    })
 
-export const setAuthToken = (token: string) => {
-  api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+    if (response.status === 401) {
+      auth.logout()
+      throw new ApiError('Sesi telah habis. Silahkan login kembali', 401)
+    }
+
+    if (response.status === 404) {
+      throw new ApiError('Endpoint tidak ditemukan.')
+    }
+
+    // if (response.status === 403) {
+    //     console.error(response);
+    //     throw new ApiError(await response.json());
+    // }
+
+    let data
+    try {
+      data = await response.json()
+    } catch (e) {
+      data = null
+    }
+
+    if (!response.ok) {
+      // console.error(response);
+      const errorMsg =
+        data?.error?.message ||
+        data?.message ||
+        data?.error ||
+        `Terjadi error pada server ${response.status}`
+      throw new ApiError(errorMsg, response.status)
+    }
+
+    return data
+  } catch (error: any) {
+    // console.error(error);
+    if (error instanceof ApiError && error.message === 'Endpoint tidak ditemukan.') {
+      throw error
+    }
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      throw new ApiError('Gagal terhubung ke server. Periksa koneksi internet atau server Anda.', 0)
+    }
+    // console.error(error.message);
+    // Lempar kembali error jika sudah berwujud ApiError
+    throw error
+  }
 }
 
 export default api

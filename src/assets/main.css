@@ -35,3 +35,4 @@ a,
 } */
 
 @import 'tailwindcss';
+@plugin 'daisyui';
