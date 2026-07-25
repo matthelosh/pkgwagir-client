@@ -1,12 +1,12 @@
 <template>
   <div
     ref="target"
-    class="notification p-6 rounded-full shadow-xl text-white cursor-pointer w-[200px] h-[200px] flex flex-col items-center justify-center animate-bounce"
+    class="notification p-2 rounded shadow-xl text-white cursor-pointer w-full flex flex-col items-start justify-center"
     :class="type"
     @click="dismiss"
   >
-    <Icon icon="mdi:bell" class="text-6xl" />
-    <p class="text-center">{{ message }}</p>
+    <!-- <Icon icon="mdi:bell" class="text-6xl" /> -->
+    <p class="text-center w-full">{{ message }}</p>
   </div>
 </template>
 
@@ -45,15 +45,18 @@ const dismiss = () => {
   transition: all 0.3s ease;
 }
 .success {
-  background-color: #4caf50;
+  background-color: #4caf5099;
+  backdrop-filter: blur(10px);
 }
 .error {
-  background-color: #f44336;
+  background-color: #f4433699;
+  backdrop-filter: blur(10px);
 }
 .info {
-  background-color: #2196f3;
+  background-color: #2196f399;
+  backdrop-filter: blur(10px);
 }
 .warning {
-  background-color: #ffc107;
+  background-color: #ffc10799;
 }
 </style>

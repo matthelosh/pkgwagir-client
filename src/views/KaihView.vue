@@ -175,11 +175,13 @@ const todayActivities = computed(() => {
 })
 
 const lanjut = () => {
+  // console.log(todayActivities.value)
   const sekali = ['Bangun Pagi', 'Tidur Cepat']
   if (sekali.includes(item.value.kebiasaan)) {
     if (todayActivities.value.map((act) => act?.kebiasaan).includes(item.value.kebiasaan)) {
       return false
     }
+    return true
   } else {
     return true
   }
@@ -214,7 +216,7 @@ const getRecords = async () => {
     const response = await api(`/kaih/${detail?.rombel[0]?.id}/${detail?.id}`, {
       method: 'GET',
     })
-    // console.log(response.data.datas)
+    console.log(response)
     datas.value = response.kaihs
   } catch (error) {
     console.log(error)

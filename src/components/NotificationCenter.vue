@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="fixed top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%] flex flex-col gap-3 z-[999999999]"
-  >
+  <div class="fixed top-8 left-[50%] -translate-x-[50%] flex flex-col gap-3 z-[999999999]">
     <NotificationItem
       v-for="note in notifications"
       :key="note.id"

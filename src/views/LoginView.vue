@@ -24,7 +24,7 @@ const login = async () => {
       method: 'POST',
       body: credentials.value,
     })
-    // console.log(response.user)
+    console.log(response.user)
     if (!response.user?.roles?.includes('siswa')) {
       // alert('Hanya untuk siswa')
       errorMsg.value = 'App ini hanya untuk siswa!'
